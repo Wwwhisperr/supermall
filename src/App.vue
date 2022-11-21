@@ -1,14 +1,22 @@
 <template>
   <div id="app">
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </nav>
-    <router-view />
+    <router-view/>
+    <main-tab-bar/>
   </div>
 </template>
 
+<script>
+import MainTabBar from '@/components/content/mainTabBar/MainTabBar.vue'
+export default {
+  name: "app",
+  components:{
+    MainTabBar
+  }
+};
+</script>
 <style>
+@import "@/assets/css/base.css";
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
