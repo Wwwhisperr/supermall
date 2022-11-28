@@ -8,7 +8,14 @@
       <!-- <div slot="right">111</div> -->
     </nav-bar>
     <!-- 滚动效果覆盖的地方 -->
-    <scroll class="content" ref="scroll">
+    <scroll
+      class="content"
+      ref="scroll"
+      :probe-type="3"
+      @scrollposition="contentScroll"
+      :pull-up-load="true"
+      @pullingUp="loadMore"
+    >
       <!-- 轮播图 -->
       <home-swiper :banners="banners" />
       <!-- 推荐列表 -->
@@ -17,15 +24,15 @@
       <feature-view />
       <!-- 小导航栏:吸顶效果 -->
       <tab-control
-        class="tab-control"
         :titles="['流行', '新款', '精选']"
         @tabClick="tabClick"
+        ref="tabControl"
       />
-      <!-- 商品页 -->
+      <!-- 商品列表 -->
       <good-list :goods="showGoods" />
     </scroll>
     <!-- 回到顶部 组件是不能监听点击的 .native---监听组件根元素的原生事件-->
-    <back-top @click.native="backClick"/>
+    <back-top @click.native="backClick" v-show="isShowBackTop" />
   </div>
 </template>
 
@@ -73,6 +80,8 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
+      isShowBackTop: true,
+      tabOffsetTop:0,
     };
   },
   computed: {
@@ -85,7 +94,7 @@ export default {
     // 1、请求多个数据
     // 轮播图数据
     this.getHomeMultidate();
-    //首页小导航的三个区块商品数据
+    //2、请求商品数据，首页小导航的三个区块商品数据
     this.getHomeGoods("pop");
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
@@ -94,6 +103,18 @@ export default {
     /**
      * 事件监听相关方法
      */
+    // 防抖函数（需要防抖的函数，等待时间）
+    debounce(func, delay) {
+      let timer = null;
+
+      return function (...args) {
+        if (timer) clearTimeout(timer);
+
+        timer = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    },
     tabClick(index) {
       switch (index) {
         case 0:
@@ -108,12 +129,19 @@ export default {
       }
     },
     backClick() {
-      
       // scrollTo(0,0,500)
       // 拿到这个组件对象
-      this.$refs.scroll.scroll.scrollTo(0,0,500)
-
-      console.log(this.$refs.scroll);
+      // this.$refs.scroll.scroll.scrollTo(0,0,500)
+      this.$refs.scroll.scrollTo(0, 0, 500);
+    },
+    contentScroll(position) {
+      // console.log(position.y);
+      this.isShowBackTop = position.y < -1000;
+    },
+    loadMore() {
+      console.log("加载更多");
+      this.getHomeGoods(this.currentType);
+      this.$refs.scroll.scroll.refresh();
     },
     /**
      * 网络请求相关方法
@@ -134,19 +162,35 @@ export default {
       getHomeGoods(type, page).then((res) => {
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
+
+        // 完成上拉加载更多
+        this.$refs.scroll.finishPullUp();
       });
     },
   },
-  // mounted() {},
+  mounted() {
+    const refresh = this.debounce(this.$refs.scroll.refresh, 500);
+
+    // 1、监听goodsitem种图片加载完成
+    this.$bus.$on("itemImageLoad", () => {
+      refresh();
+      // this.$refs.scroll.refresh();
+    });
+
+    // 2、获取tabControl的offsetTop
+    // 所有组件都有一个属性$el -->用于获取组件中的元素
+    // 要等图片加载完再拿offsetTop值才会正常，否则没有图片撑起来这个值会很小
+    this.$trfs.TabControl.$el.offsetTop
+  },
 };
 </script>
 
 <style scoped>
-  #home {
-    padding-top: 44px;
-    height: 100vh;
-    /* position: relative; */
-  }
+#home {
+  /* padding-top: 44px; */
+  height: 100vh;
+  position: relative;
+}
 .home-nav {
   background-color: var(--color-tint);
   color: #fff;
@@ -156,24 +200,23 @@ export default {
   right: 0;
   z-index: 9;
 }
-.tab-control {
-  position: sticky;
-  top: 44px;
-  z-index: 9;
-}
+/* .tab-control { */
+  /* position: sticky; 完成上拉加载更多后这个属性不起作用*/
+  /* top: 44px;
+  z-index: 9; */
+/* } */
 /* 奇奇怪怪的bug */
-  /* .content {
-    overflow: hidden;
-
-    position: absolute;
-    top: 44px;
-    bottom: 49px;
-    left: 0;
-    right: 0;
-  } */
 .content {
+  position: absolute;
+  top: 44px;
+  bottom: 49px;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+/* .content {
   height: calc(100%-93px);
   padding-bottom: 49px;
   overflow: hidden;
-}
+} */
 </style>

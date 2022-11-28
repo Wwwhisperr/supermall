@@ -1,19 +1,35 @@
 <template>
   <div>
-    <h2>我的</h2>
+    <scroll class="content">
+      <ul>
+    
+      </ul>
+
+    </scroll>
   </div>
 </template>
 
 <script>
+import Scroll from '@/components/common/scroll/Scroll.vue'
 export default {
   name: "Profile",
   data() {
     return {};
   },
-  components: {},
+  components: {
+    Scroll,
+  },
   methods: {},
   mounted() {}
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+  .content {
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+  }</style>
