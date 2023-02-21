@@ -3,7 +3,7 @@
     <swiper>
       <swiper-item v-for="item in banners">
         <a :href="item.link">
-          <img :src="item.image" alt="" />
+          <img :src="item.image" alt="" @load="imageLoad" />
         </a>
       </swiper-item>
     </swiper>
@@ -19,21 +19,30 @@ import { Swiper, SwiperItem } from "@/components/common/swiper";
 export default {
   name: "HomeSwiper",
   data() {
-    return {};
+    return {
+      isLoad: false,
+    };
   },
-  props:{
-    banners:{
-      type:Array,
-      default(){
-        return []
-      }
-    }
+  props: {
+    banners: {
+      type: Array,
+      default() {
+        return [];
+      },
+    },
   },
   components: {
     Swiper,
     SwiperItem,
   },
-  methods: {},
+  methods: {
+    imageLoad() {//图片经常会影响offsetTop，所以需要图片加载完再获取offsetTop
+      if (!this.isLoad) {//让事件只发生一次
+        this.$emit("swiperImageLoad");
+        this.isLoad = true;
+      }
+    },
+  },
   mounted() {},
 };
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <tab-bar>
+  <tab-bar class="navbar">
     <tab-bar-item path="/home" activeColor="deepPink">
       <img slot="item-icon" src="@/assets/img/tabbar/home.svg" alt="" />
       <img
@@ -55,4 +55,5 @@ export default {
 </script>
 
 <style scoped>
+
 </style>
